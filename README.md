@@ -1,4 +1,4 @@
 Algorithms
 ==========
 
-Assignments for algorithms course by  K. Wayne and R. Sedgewick, Princeton University
+Assignments for Coursera's algorithms course by  R. Sedgewick, Princeton University
