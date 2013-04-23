@@ -65,35 +65,37 @@ public class Solver {
     private Stack<Board> getSolutionPath() {
         Board twin = initial.twin();
         Stack<Board> solution = new Stack<Board>();
-        MinPQ<BoardMove> pq = new MinPQ<BoardMove>(new BoardComparator());
-        MinPQ<BoardMove> twinPq = new MinPQ<BoardMove>(new BoardComparator());
-        List<Board> processed = new LinkedList<Board>();
-        List<Board> twinProcessed = new LinkedList<Board>();
+        MinPQ<BoardMove> pq = new MinPQ<BoardMove>(new BoardMoveComparator());
+        MinPQ<BoardMove> twinPq = new MinPQ<BoardMove>(new BoardMoveComparator());
+        SET<BoardComparator> processed = new SET<BoardComparator>();
+        SET<BoardComparator> twinProcessed = new SET<BoardComparator>();
         int moves = 0;
         pq.insert(new BoardMove(initial, moves));
-        processed.add(initial);
+        processed.add(new BoardComparator(initial));
         int twinMoves = 0;
         twinPq.insert(new BoardMove(twin, twinMoves));
         while (true) {
             initial = pq.delMin().board;
             solution.push(initial);
             twin = twinPq.delMin().board;
-            twinProcessed.add(twin);
+            twinProcessed.add(new BoardComparator(twin));
             if (initial.isGoal())
                 return solution;
             if (twin.isGoal())
                 return null;
             for (Board b : initial.neighbors()) {
-                if (!processed.contains(b)) {
+                BoardComparator boardComparator = new BoardComparator(b);
+                if (!processed.contains(boardComparator)) {
                     pq.insert(new BoardMove(b, ++moves));
-                    processed.add(b);
+                    processed.add(boardComparator);
                     pathMap.put(b, initial);
                 }
             }
             for (Board b : twin.neighbors()) {
-                if (!twinProcessed.contains(b)) {
+                BoardComparator boardComparator = new BoardComparator(b);
+                if (!twinProcessed.contains(boardComparator)) {
                     twinPq.insert(new BoardMove(b, ++twinMoves));
-                    twinProcessed.add(b);
+                    twinProcessed.add(boardComparator);
                 }
             }
         }
@@ -109,11 +111,31 @@ public class Solver {
         }
     }
 
-    private class BoardComparator implements Comparator<BoardMove> {
+    private class BoardMoveComparator implements Comparator<BoardMove> {
         public int compare(BoardMove o1, BoardMove o2) {
             int manh = o1.board.manhattan() - o2.board.manhattan();
             int hamm = o1.board.hamming() - o2.board.hamming();
             return o1.moves - o2.moves + (manh > hamm ? hamm : manh);
+        }
+    }
+
+    private class BoardComparator implements Comparable<BoardComparator> {
+        private Board board;
+
+        BoardComparator(Board board) {
+            this.board = board;
+        }
+
+        public int compareTo(BoardComparator board2) {
+            int m1 = board.manhattan();
+            int m2 = board2.board.manhattan();
+            if (m1 != m2)
+                return m1 - m2;
+            int h1 = board.hamming();
+            int h2 = board2.board.hamming();
+            if (h1 != h2)
+                return h1 - h2;
+            return board.toString().compareTo(board2.toString());
         }
     }
 }

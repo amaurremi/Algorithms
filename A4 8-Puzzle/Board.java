@@ -5,13 +5,34 @@ import java.util.List;
 public class Board {
 
     private final int[][] blocks;
+    private final int manhattan;
+    private int space;
+
+    public int hamming() {
+        return hamming;
+    }
+
+    public int manhattan() {
+        return manhattan;
+    }
+
+    private final int hamming;
 
     public Board(int[][] blocks) {
         int n = blocks.length;
         this.blocks = new int[n][n];
+        int space = -1;
         for (int i = 0; i < n; i++) {
-            System.arraycopy(blocks[i], 0, this.blocks[i], 0, n);
+            for (int j = 0; j < n; j++) {
+                this.blocks[i][j] = blocks[i][j];
+                if (blocks[i][j] == 0) {
+                    space = i * n + j;
+                }
+            }
         }
+        this.space = space;
+        manhattan = evalManhattan();
+        hamming = evalHamming();
     }
 
     public static void main(String[] args) {
@@ -31,7 +52,7 @@ public class Board {
         return blocks.length;
     }
 
-    public int hamming() {
+    private int evalHamming() {
         int hamming = 0;
         int next = 0;
         int n = dimension();
@@ -47,7 +68,7 @@ public class Board {
         return hamming;
     }
 
-    public int manhattan() {
+    private int evalManhattan() {
         int manhattan = 0;
         int next = 0;
         int n = dimension();
@@ -79,18 +100,6 @@ public class Board {
         return true;
     }
 
-    private int findSpace() {
-        int index = 0;
-        for (int[] block : blocks) {
-            for (int i : block) {
-                if (i == 0)
-                    return index;
-                index++;
-            }
-        }
-        return -1;
-    }
-
     private boolean isSpace(int i, int j) {
         return blocks[i][j] == 0;
     }
@@ -109,9 +118,15 @@ public class Board {
     }
 
     private void swap(int i1, int j1, int i2, int j2) {
-        int tmp = blocks[i1][j1];
-        blocks[i1][j1] = blocks[i2][j2];
-        blocks[i2][j2] = tmp;
+        int b1 = blocks[i1][j1];
+        int b2 = blocks[i2][j2];
+        blocks[i1][j1] = b2;
+        blocks[i2][j2] = b1;
+        if (b1 == 0) {
+            space = i2 * dimension() + j2;
+        } else if (b2 == 0) {
+            space = i1 * dimension() + j1;
+        }
     }
 
     public boolean equals(Object y) {
@@ -129,7 +144,7 @@ public class Board {
     }
 
     public Iterable<Board> neighbors() {
-        int index = findSpace();
+        int index = space;
         List<Board> boards = new LinkedList<Board>();
         int n = dimension();
         int above = index - n;
